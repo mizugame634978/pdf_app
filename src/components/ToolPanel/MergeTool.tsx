@@ -5,11 +5,13 @@ import { StatusView } from './StatusView';
 import { mergePdfs } from '../../lib/merge';
 import { downloadPdf } from '../../lib/download';
 import { usePdfProcessor } from '../../hooks/usePdfProcessor';
+import { useFirstPageThumbnailMap } from '../../hooks/useThumbnails';
 import type { PdfFile } from '../../types';
 import styles from './ToolPanel.module.css';
 
 export function MergeTool() {
   const [files, setFiles] = useState<PdfFile[]>([]);
+  const thumbnails = useFirstPageThumbnailMap(files);
 
   const addFiles = (newFiles: File[]) => {
     setFiles((prev) => [
@@ -49,6 +51,7 @@ export function MergeTool() {
         <>
           <PageList
             files={files}
+            thumbnails={thumbnails}
             onReorder={setFiles}
             onRemove={(id) => setFiles((prev) => prev.filter((f) => f.id !== id))}
           />

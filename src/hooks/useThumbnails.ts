@@ -1,23 +1,48 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { renderFirstPage, renderAllPages } from '../lib/preview';
+import type { PdfFile } from '../types';
 
-export function useFirstPageThumbnail(file: File | null): string | null {
-  const [url, setUrl] = useState<string | null>(null);
+// ファイルリスト全体のサムネイルを一括管理するフック（マージ用）
+export function useFirstPageThumbnailMap(files: PdfFile[]): Map<string, string> {
+  const [thumbnails, setThumbnails] = useState<Map<string, string>>(new Map());
+  const fileIds = files.map((f) => f.id).join(',');
 
   useEffect(() => {
-    if (!file) {
-      setUrl(null);
-      return;
-    }
+    if (files.length === 0) return;
     let cancelled = false;
-    file.arrayBuffer()
-      .then((buf) => renderFirstPage(buf))
-      .then((dataUrl) => { if (!cancelled) setUrl(dataUrl); })
-      .catch(() => { /* 表示できない場合は何もしない */ });
-    return () => { cancelled = true; };
-  }, [file]);
 
-  return url;
+    (async () => {
+      for (const pdfFile of files) {
+        if (cancelled) break;
+        // すでに生成済みならスキップ
+        setThumbnails((prev) => {
+          if (prev.has(pdfFile.id)) return prev;
+          return prev; // まだない場合は次の処理へ
+        });
+        // 状態を直接参照できないため、別途チェック用 Ref を使わず
+        // setThumbnails の関数形式で冪等に書き込む
+        try {
+          const buffer = await pdfFile.file.arrayBuffer();
+          const url = await renderFirstPage(buffer);
+          if (!cancelled) {
+            setThumbnails((prev) => {
+              if (prev.has(pdfFile.id)) return prev;
+              const next = new Map(prev);
+              next.set(pdfFile.id, url);
+              return next;
+            });
+          }
+        } catch (e) {
+          console.error('[useThumbnails] first page:', e);
+        }
+      }
+    })();
+
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fileIds]);
+
+  return thumbnails;
 }
 
 export function useAllPageThumbnails(file: File | null): {
@@ -28,6 +53,7 @@ export function useAllPageThumbnails(file: File | null): {
   const [thumbnails, setThumbnails] = useState<string[]>([]);
   const [pageCount, setPageCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const fileRef = useRef<File | null>(null);
 
   useEffect(() => {
     if (!file) {
@@ -35,6 +61,10 @@ export function useAllPageThumbnails(file: File | null): {
       setPageCount(0);
       return;
     }
+    // 同じファイルの再実行（Strict Mode）はスキップ
+    if (fileRef.current === file && thumbnails.length > 0) return;
+    fileRef.current = file;
+
     let cancelled = false;
     setLoading(true);
     setThumbnails([]);
@@ -47,8 +77,12 @@ export function useAllPageThumbnails(file: File | null): {
           setLoading(false);
         }
       })
-      .catch(() => { if (!cancelled) setLoading(false); });
+      .catch((e) => {
+        console.error('[useThumbnails] all pages:', e);
+        if (!cancelled) setLoading(false);
+      });
     return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file]);
 
   return { thumbnails, pageCount, loading };
