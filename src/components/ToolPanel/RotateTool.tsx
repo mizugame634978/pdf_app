@@ -1,9 +1,11 @@
 import { useState, useCallback } from 'react';
 import { FileUploader } from '../FileUploader/FileUploader';
+import { PageThumbnails } from '../PageThumbnails/PageThumbnails';
 import { StatusView } from './StatusView';
 import { rotatePdf } from '../../lib/rotate';
 import { downloadPdf } from '../../lib/download';
 import { usePdfProcessor } from '../../hooks/usePdfProcessor';
+import { useAllPageThumbnails } from '../../hooks/useThumbnails';
 import type { RotationAngle } from '../../types';
 import styles from './ToolPanel.module.css';
 
@@ -13,31 +15,34 @@ export function RotateTool() {
   const [file, setFile] = useState<File | null>(null);
   const [angle, setAngle] = useState<RotationAngle>(90);
   const [scope, setScope] = useState<'all' | 'pages'>('all');
-  const [pageInput, setPageInput] = useState('');
+  const [selectedPages, setSelectedPages] = useState<Set<number>>(new Set());
 
-  const addFile = (files: File[]) => setFile(files[0]);
+  const { thumbnails, pageCount, loading } = useAllPageThumbnails(file);
 
-  const parsePageIndices = (): number[] => {
-    return pageInput
-      .split(',')
-      .flatMap((s) => {
-        const m = s.trim().match(/^(\d+)(?:-(\d+))?$/);
-        if (!m) return [];
-        const start = parseInt(m[1]) - 1;
-        const end = m[2] ? parseInt(m[2]) - 1 : start;
-        return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-      });
+  const addFile = (files: File[]) => {
+    setFile(files[0]);
+    setSelectedPages(new Set());
+  };
+
+  const togglePage = (pageNum: number) => {
+    setSelectedPages((prev) => {
+      const next = new Set(prev);
+      next.has(pageNum) ? next.delete(pageNum) : next.add(pageNum);
+      return next;
+    });
   };
 
   const processor = useCallback(async () => {
     if (!file) throw new Error('ファイルが選択されていません');
     const buffer = await file.arrayBuffer();
-    const targets = scope === 'all' ? 'all' : parsePageIndices();
-    if (scope === 'pages' && (targets as number[]).length === 0) {
-      throw new Error('ページ番号の形式が正しくありません');
+    if (scope === 'pages' && selectedPages.size === 0) {
+      throw new Error('回転するページを選択してください');
     }
+    const targets = scope === 'all'
+      ? 'all'
+      : Array.from(selectedPages).map((p) => p - 1);
     return rotatePdf(buffer, angle, targets);
-  }, [file, angle, scope, pageInput]);
+  }, [file, angle, scope, selectedPages]);
 
   const onSuccess = useCallback((data: Uint8Array) => {
     const baseName = file?.name.replace(/\.pdf$/i, '') ?? 'rotated';
@@ -48,7 +53,7 @@ export function RotateTool() {
 
   const handleReset = () => {
     setFile(null);
-    setPageInput('');
+    setSelectedPages(new Set());
     reset();
   };
 
@@ -62,7 +67,10 @@ export function RotateTool() {
         <FileUploader onFiles={addFile} />
       ) : (
         <>
-          <p className={styles.fileName}>{file.name}</p>
+          <p className={styles.fileName}>
+            {file.name}
+            {pageCount > 0 && <span className={styles.pageCount}> — {pageCount}ページ</span>}
+          </p>
 
           <div className={styles.section}>
             <p className={styles.label}>回転角度</p>
@@ -96,20 +104,27 @@ export function RotateTool() {
                   checked={scope === 'pages'}
                   onChange={() => setScope('pages')}
                 />
-                ページ指定
+                ページを選択
               </label>
             </div>
+
             {scope === 'pages' && (
-              <div className={styles.rangeInput}>
-                <input
-                  type="text"
-                  placeholder="例: 1, 3-5"
-                  value={pageInput}
-                  onChange={(e) => setPageInput(e.target.value)}
-                  className={styles.textInput}
-                />
-              </div>
+              <>
+                <p className={styles.hint}>サムネイルをクリックしてページを選択</p>
+                {selectedPages.size > 0 && (
+                  <p className={styles.hint}>
+                    選択中: {Array.from(selectedPages).sort((a, b) => a - b).join(', ')} ページ
+                  </p>
+                )}
+              </>
             )}
+
+            <PageThumbnails
+              thumbnails={thumbnails}
+              loading={loading}
+              selectedPages={scope === 'pages' ? selectedPages : undefined}
+              onToggle={scope === 'pages' ? togglePage : undefined}
+            />
           </div>
 
           <button className={styles.runBtn} onClick={run}>
