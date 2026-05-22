@@ -5,6 +5,7 @@ import { RotateTool } from './components/ToolPanel/RotateTool';
 import { CompressTool } from './components/ToolPanel/CompressTool';
 import { ReorderTool } from './components/ToolPanel/ReorderTool';
 import { ImageConvertTool } from './components/ToolPanel/ImageConvertTool';
+import { WatermarkTool } from './components/ToolPanel/WatermarkTool';
 import type { ToolType } from './types';
 import styles from './App.module.css';
 
@@ -15,6 +16,7 @@ const TOOLS: { id: ToolType; label: string; desc: string; emoji: string }[] = [
   { id: 'compress', label: '圧縮',     desc: 'ファイルサイズを削減',           emoji: '🗜️' },
   { id: 'reorder',       label: 'ページ編集', desc: 'ページの削除・並び替え',       emoji: '📄' },
   { id: 'imageconvert', label: '画像変換',   desc: '画像↔PDF変換',               emoji: '🖼️' },
+  { id: 'watermark',    label: '透かし',     desc: '透かし・ページ番号の追加',     emoji: '🔏' },
 ];
 
 export default function App() {
@@ -66,6 +68,7 @@ export default function App() {
             {activeTool === 'compress' && <CompressTool />}
             {activeTool === 'reorder'       && <ReorderTool />}
             {activeTool === 'imageconvert' && <ImageConvertTool />}
+            {activeTool === 'watermark'    && <WatermarkTool />}
           </div>
         )}
       </main>
