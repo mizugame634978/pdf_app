@@ -1,9 +1,11 @@
 import { useState, useCallback } from 'react';
 import { FileUploader } from '../FileUploader/FileUploader';
+import { PageThumbnails } from '../PageThumbnails/PageThumbnails';
 import { StatusView } from './StatusView';
 import { splitPdf, splitPdfByPage } from '../../lib/split';
 import { downloadMultiplePdfs } from '../../lib/download';
 import { usePdfProcessor } from '../../hooks/usePdfProcessor';
+import { useAllPageThumbnails } from '../../hooks/useThumbnails';
 import type { PageRange } from '../../types';
 import styles from './ToolPanel.module.css';
 
@@ -27,7 +29,8 @@ export function SplitTool() {
   const [file, setFile] = useState<File | null>(null);
   const [mode, setMode] = useState<SplitMode>('each');
   const [rangeInput, setRangeInput] = useState('');
-  const [pageCount] = useState(0);
+
+  const { thumbnails, pageCount, loading } = useAllPageThumbnails(file);
 
   const addFile = (files: File[]) => setFile(files[0]);
 
@@ -67,7 +70,12 @@ export function SplitTool() {
         <FileUploader onFiles={addFile} />
       ) : (
         <>
-          <p className={styles.fileName}>{file.name}</p>
+          <p className={styles.fileName}>
+            {file.name}
+            {pageCount > 0 && <span className={styles.pageCount}> — {pageCount}ページ</span>}
+          </p>
+
+          <PageThumbnails thumbnails={thumbnails} loading={loading} />
 
           <div className={styles.modeGroup}>
             <label className={styles.radio}>

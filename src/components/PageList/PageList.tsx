@@ -5,11 +5,12 @@ import styles from './PageList.module.css';
 
 interface Props {
   files: PdfFile[];
+  thumbnails?: Map<string, string>;
   onReorder: (files: PdfFile[]) => void;
   onRemove: (id: string) => void;
 }
 
-export function PageList({ files, onReorder, onRemove }: Props) {
+export function PageList({ files, thumbnails, onReorder, onRemove }: Props) {
   const dragId = useRef<string | null>(null);
 
   const onDragStart = (id: string) => {
@@ -30,29 +31,37 @@ export function PageList({ files, onReorder, onRemove }: Props) {
 
   return (
     <ul className={styles.list}>
-      {files.map((f, i) => (
-        <li
-          key={f.id}
-          className={styles.item}
-          draggable
-          onDragStart={() => onDragStart(f.id)}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => onDrop(e, f.id)}
-        >
-          <span className={styles.num}>{i + 1}</span>
-          <span className={styles.name}>{f.name}</span>
-          <span className={styles.size}>
-            {(f.file.size / 1024).toFixed(0)} KB
-          </span>
-          <button
-            className={styles.remove}
-            onClick={() => onRemove(f.id)}
-            title="削除"
+      {files.map((f, i) => {
+        const thumbUrl = thumbnails?.get(f.id);
+        return (
+          <li
+            key={f.id}
+            className={styles.item}
+            draggable
+            onDragStart={() => onDragStart(f.id)}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => onDrop(e, f.id)}
           >
-            ×
-          </button>
-        </li>
-      ))}
+            {thumbUrl ? (
+              <img src={thumbUrl} alt="page preview" className={styles.thumb} />
+            ) : (
+              <div className={styles.thumbPlaceholder} />
+            )}
+            <span className={styles.num}>{i + 1}</span>
+            <span className={styles.name}>{f.name}</span>
+            <span className={styles.size}>
+              {(f.file.size / 1024).toFixed(0)} KB
+            </span>
+            <button
+              className={styles.remove}
+              onClick={() => onRemove(f.id)}
+              title="削除"
+            >
+              ×
+            </button>
+          </li>
+        );
+      })}
     </ul>
   );
 }

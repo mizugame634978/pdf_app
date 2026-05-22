@@ -15,6 +15,12 @@
   white-space: nowrap;
 }
 
+.pageCount {
+  font-weight: normal;
+  color: #666;
+  font-size: 0.9em;
+}
+
 .section {
   display: flex;
   flex-direction: column;
