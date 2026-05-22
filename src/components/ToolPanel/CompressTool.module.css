@@ -1,0 +1,92 @@
+.originalSize {
+  color: #666;
+  font-size: 0.9rem;
+  margin: -8px 0 0;
+}
+
+.qualityGroup {
+  display: flex;
+  gap: 10px;
+}
+
+.qualityBtn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.qualityBtn:hover {
+  border-color: #4f8ef7;
+}
+
+.qualityBtn.active {
+  border-color: #4f8ef7;
+  background: #eef4ff;
+}
+
+.qualityLabel {
+  font-weight: bold;
+  font-size: 0.95rem;
+}
+
+.qualityDesc {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.qualityBtn.active .qualityDesc {
+  color: #4f8ef7;
+}
+
+.note {
+  font-size: 0.82rem;
+  color: #aaa;
+  margin: -8px 0 0;
+}
+
+.loadingNote {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #999;
+  margin-top: -12px;
+}
+
+.result {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.resultTitle {
+  font-weight: bold;
+  font-size: 1.05rem;
+  color: #2f855a;
+  margin: 0;
+}
+
+.sizeRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+}
+
+.positive {
+  color: #2f855a;
+}
+
+.negative {
+  color: #c53030;
+}

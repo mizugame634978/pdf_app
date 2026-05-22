@@ -2,13 +2,15 @@ import { useState } from 'react';
 import { MergeTool } from './components/ToolPanel/MergeTool';
 import { SplitTool } from './components/ToolPanel/SplitTool';
 import { RotateTool } from './components/ToolPanel/RotateTool';
+import { CompressTool } from './components/ToolPanel/CompressTool';
 import type { ToolType } from './types';
 import styles from './App.module.css';
 
 const TOOLS: { id: ToolType; label: string; desc: string; emoji: string }[] = [
-  { id: 'merge', label: 'マージ', desc: '複数のPDFを1つに結合', emoji: '🔗' },
-  { id: 'split', label: '分割', desc: '1つのPDFを複数に分割', emoji: '✂️' },
-  { id: 'rotate', label: '回転', desc: 'ページを90°/180°/270°回転', emoji: '🔄' },
+  { id: 'merge',    label: 'マージ', desc: '複数のPDFを1つに結合',       emoji: '🔗' },
+  { id: 'split',    label: '分割',   desc: '1つのPDFを複数に分割',       emoji: '✂️' },
+  { id: 'rotate',   label: '回転',   desc: 'ページを90°/180°/270°回転', emoji: '🔄' },
+  { id: 'compress', label: '圧縮',   desc: 'ファイルサイズを削減',       emoji: '🗜️' },
 ];
 
 export default function App() {
@@ -54,9 +56,10 @@ export default function App() {
             <h2 className={styles.toolTitle}>
               {tool?.emoji} {tool?.label}
             </h2>
-            {activeTool === 'merge' && <MergeTool />}
-            {activeTool === 'split' && <SplitTool />}
-            {activeTool === 'rotate' && <RotateTool />}
+            {activeTool === 'merge'    && <MergeTool />}
+            {activeTool === 'split'    && <SplitTool />}
+            {activeTool === 'rotate'   && <RotateTool />}
+            {activeTool === 'compress' && <CompressTool />}
           </div>
         )}
       </main>
