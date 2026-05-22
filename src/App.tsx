@@ -4,6 +4,7 @@ import { SplitTool } from './components/ToolPanel/SplitTool';
 import { RotateTool } from './components/ToolPanel/RotateTool';
 import { CompressTool } from './components/ToolPanel/CompressTool';
 import { ReorderTool } from './components/ToolPanel/ReorderTool';
+import { ImageConvertTool } from './components/ToolPanel/ImageConvertTool';
 import type { ToolType } from './types';
 import styles from './App.module.css';
 
@@ -12,7 +13,8 @@ const TOOLS: { id: ToolType; label: string; desc: string; emoji: string }[] = [
   { id: 'split',    label: '分割',   desc: '1つのPDFを複数に分割',       emoji: '✂️' },
   { id: 'rotate',   label: '回転',   desc: 'ページを90°/180°/270°回転', emoji: '🔄' },
   { id: 'compress', label: '圧縮',     desc: 'ファイルサイズを削減',           emoji: '🗜️' },
-  { id: 'reorder',  label: 'ページ編集', desc: 'ページの削除・並び替え',       emoji: '📄' },
+  { id: 'reorder',       label: 'ページ編集', desc: 'ページの削除・並び替え',       emoji: '📄' },
+  { id: 'imageconvert', label: '画像変換',   desc: '画像↔PDF変換',               emoji: '🖼️' },
 ];
 
 export default function App() {
@@ -62,7 +64,8 @@ export default function App() {
             {activeTool === 'split'    && <SplitTool />}
             {activeTool === 'rotate'   && <RotateTool />}
             {activeTool === 'compress' && <CompressTool />}
-            {activeTool === 'reorder'  && <ReorderTool />}
+            {activeTool === 'reorder'       && <ReorderTool />}
+            {activeTool === 'imageconvert' && <ImageConvertTool />}
           </div>
         )}
       </main>

@@ -1,4 +1,4 @@
-export type ToolType = 'merge' | 'split' | 'rotate' | 'compress' | 'reorder';
+export type ToolType = 'merge' | 'split' | 'rotate' | 'compress' | 'reorder' | 'imageconvert';
 
 export type AppState = 'idle' | 'configuring' | 'processing' | 'done' | 'error';
 
