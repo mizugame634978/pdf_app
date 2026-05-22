@@ -1,3 +1,5 @@
+import JSZip from 'jszip';
+
 export function downloadPdf(data: Uint8Array, filename: string): void {
   const blob = new Blob([data.buffer as ArrayBuffer], { type: 'application/pdf' });
   const url = URL.createObjectURL(blob);
@@ -8,10 +10,19 @@ export function downloadPdf(data: Uint8Array, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
-export function downloadMultiplePdfs(
-  files: { data: Uint8Array; name: string }[]
-): void {
+export async function downloadAsZip(
+  files: { data: Uint8Array; name: string }[],
+  zipName: string
+): Promise<void> {
+  const zip = new JSZip();
   for (const f of files) {
-    downloadPdf(f.data, f.name);
+    zip.file(f.name, f.data);
   }
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = zipName;
+  a.click();
+  URL.revokeObjectURL(url);
 }

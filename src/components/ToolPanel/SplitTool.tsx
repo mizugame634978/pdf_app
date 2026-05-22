@@ -3,7 +3,7 @@ import { FileUploader } from '../FileUploader/FileUploader';
 import { PageThumbnails } from '../PageThumbnails/PageThumbnails';
 import { StatusView } from './StatusView';
 import { splitPdf, splitPdfByPage } from '../../lib/split';
-import { downloadMultiplePdfs } from '../../lib/download';
+import { downloadPdf, downloadAsZip } from '../../lib/download';
 import { usePdfProcessor } from '../../hooks/usePdfProcessor';
 import { useAllPageThumbnails } from '../../hooks/useThumbnails';
 import type { PageRange } from '../../types';
@@ -47,9 +47,12 @@ export function SplitTool() {
 
   const onSuccess = useCallback((results: Uint8Array[]) => {
     const baseName = file?.name.replace(/\.pdf$/i, '') ?? 'split';
-    downloadMultiplePdfs(
-      results.map((data, i) => ({ data, name: `${baseName}_${i + 1}.pdf` }))
-    );
+    const files = results.map((data, i) => ({ data, name: `${baseName}_${i + 1}.pdf` }));
+    if (files.length === 1) {
+      downloadPdf(files[0].data, files[0].name);
+    } else {
+      downloadAsZip(files, `${baseName}_split.zip`);
+    }
   }, [file]);
 
   const { state, error, run, reset } = usePdfProcessor(processor, onSuccess);
