@@ -26,7 +26,15 @@ DESIGN.md Phase 5 に対応。画像を多く含む PDF は容量が大きくな
 
 ## 受け入れ条件
 
-- [ ] 圧縮後のファイルサイズが元より小さくなる（画像入りPDFで確認）
-- [ ] 圧縮前後のサイズ削減率が画面に表示される
-- [ ] テキストのみのPDFでもクラッシュしない
-- [ ] AGPLライセンスの旨をREADMEに明記する
+- [x] 圧縮後のファイルサイズが元より小さくなる（画像入りPDFで確認）
+- [x] 圧縮前後のサイズ削減率が画面に表示される
+- [x] テキストのみのPDFでもクラッシュしない
+- [x] AGPLライセンスの旨をREADMEに明記する
+
+## 実装内容
+
+- `src/lib/compress.ts`: `@okathira/ghostpdl-wasm` を dynamic import で遅延ロードし `-dPDFSETTINGS` で品質制御
+- `src/components/ToolPanel/CompressTool.tsx`: 低/中/高の3段階品質選択UI・圧縮前後のサイズと削減率を表示
+- `src/App.tsx`: トップに「圧縮」カードを追加
+- `README.md`: AGPL-3.0 ライセンス注意事項を追記
+- ライブラリ: `@okathira/ghostpdl-wasm` (AGPL-3.0、約15MB WASM)

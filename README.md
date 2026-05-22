@@ -36,6 +36,16 @@ npm run build
 | フレームワーク | React 19 + TypeScript |
 | ビルドツール | Vite |
 | PDF処理エンジン | pdf-lib |
+| プレビュー | pdfjs-dist |
+| PDF圧縮 | @okathira/ghostpdl-wasm |
+
+## ライセンスに関する注意
+
+圧縮機能は **@okathira/ghostpdl-wasm**（Ghostscript の WebAssembly ビルド）を使用しています。
+このライブラリは **AGPL-3.0** ライセンスで提供されています。
+
+- 個人・ホビー用途での利用は問題ありません
+- 商用サービスとして配布・提供する場合は AGPL の条件（ソースコード開示等）を確認してください
 
 ## アーキテクチャ
 
