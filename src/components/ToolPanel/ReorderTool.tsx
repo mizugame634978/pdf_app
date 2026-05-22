@@ -9,56 +9,70 @@ import { useAllPageThumbnails } from '../../hooks/useThumbnails';
 import styles from './ToolPanel.module.css';
 import pageStyles from './ReorderTool.module.css';
 
-// 各スロットは「元PDFの何ページ目か（0-based）」を保持する
 interface PageSlot {
-  key: string;      // ドラッグキー用のユニークID
-  srcIndex: number; // 元ページインデックス（0-based）
+  key: string;
+  srcIndex: number;
+}
+
+// ドラッグ中にビューポート端へ近づいたとき自動スクロールする
+const SCROLL_THRESHOLD = 80; // px
+const SCROLL_SPEED = 12;     // px/event
+
+function autoScroll(clientY: number) {
+  if (clientY < SCROLL_THRESHOLD) {
+    window.scrollBy({ top: -SCROLL_SPEED });
+  } else if (window.innerHeight - clientY < SCROLL_THRESHOLD) {
+    window.scrollBy({ top: SCROLL_SPEED });
+  }
 }
 
 export function ReorderTool() {
   const [file, setFile] = useState<File | null>(null);
   const [slots, setSlots] = useState<PageSlot[]>([]);
+  // ユーザーが意図的に全削除したか、まだロード中かを区別するフラグ
+  const [initialized, setInitialized] = useState(false);
   const dragKey = useRef<string | null>(null);
 
-  const { thumbnails, pageCount, loading } = useAllPageThumbnails(file);
+  const { thumbnails, pageCount } = useAllPageThumbnails(file);
 
   const addFile = (files: File[]) => {
-    const f = files[0];
-    setFile(f);
+    setFile(files[0]);
     setSlots([]);
+    setInitialized(false);
   };
 
-  // サムネイルが揃ったタイミングで初期スロットを生成
-  const initSlots = useCallback(() => {
-    if (slots.length === 0 && pageCount > 0) {
-      setSlots(
-        Array.from({ length: pageCount }, (_, i) => ({
-          key: crypto.randomUUID(),
-          srcIndex: i,
-        }))
-      );
-    }
-  }, [slots.length, pageCount]);
-
-  if (pageCount > 0 && slots.length === 0) initSlots();
+  // pageCount が確定したタイミングで初期スロットを生成（一度だけ）
+  if (!initialized && pageCount > 0) {
+    setInitialized(true);
+    setSlots(
+      Array.from({ length: pageCount }, (_, i) => ({
+        key: crypto.randomUUID(),
+        srcIndex: i,
+      }))
+    );
+  }
 
   const onDragStart = (key: string) => { dragKey.current = key; };
 
-  const onDrop = (e: DragEvent<HTMLLIElement>, targetKey: string) => {
+  const onDragOver = (e: DragEvent<HTMLLIElement>, targetKey: string) => {
     e.preventDefault();
+    autoScroll(e.clientY);
     if (!dragKey.current || dragKey.current === targetKey) return;
+    // dragover のたびにプレビュー並び替えを行い、視覚フィードバックを即時に出す
     const from = slots.findIndex((s) => s.key === dragKey.current);
     const to = slots.findIndex((s) => s.key === targetKey);
+    if (from === -1 || to === -1 || from === to) return;
     const next = [...slots];
     const [item] = next.splice(from, 1);
     next.splice(to, 0, item);
     setSlots(next);
-    dragKey.current = null;
   };
 
   const removePage = (key: string) => {
     setSlots((prev) => prev.filter((s) => s.key !== key));
   };
+
+  const allDeleted = initialized && slots.length === 0;
 
   const processor = useCallback(async () => {
     if (!file) throw new Error('ファイルが選択されていません');
@@ -77,6 +91,7 @@ export function ReorderTool() {
   const handleReset = () => {
     setFile(null);
     setSlots([]);
+    setInitialized(false);
     reset();
   };
 
@@ -97,7 +112,7 @@ export function ReorderTool() {
             )}
           </p>
 
-          {loading && slots.length === 0 && (
+          {!initialized && (
             <p className={styles.hint}>プレビューを生成中...</p>
           )}
 
@@ -112,8 +127,7 @@ export function ReorderTool() {
                       className={pageStyles.item}
                       draggable
                       onDragStart={() => onDragStart(slot.key)}
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={(e) => onDrop(e, slot.key)}
+                      onDragOver={(e) => onDragOver(e, slot.key)}
                     >
                       {thumb ? (
                         <img src={thumb} alt={`p${slot.srcIndex + 1}`} className={pageStyles.thumb} />
@@ -140,11 +154,11 @@ export function ReorderTool() {
           <button
             className={styles.runBtn}
             onClick={run}
-            disabled={slots.length === 0}
+            disabled={!initialized || allDeleted}
           >
             保存してダウンロード
           </button>
-          {slots.length === 0 && (
+          {allDeleted && (
             <p className={styles.warn}>ページがすべて削除されています</p>
           )}
           <button className={styles.resetLink} onClick={handleReset}>
